@@ -132,7 +132,7 @@ export function createRenderer(canvas) {
   }
 
   // The HUD bar across the top.
-  function drawHud(level, muted) {
+  function drawHud(level, name, muted) {
     context.fillStyle = PALETTE.panel;
     context.fillRect(0, 0, FIELD.width, FIELD.hud);
     context.strokeStyle = PALETTE.panelLine;
@@ -141,7 +141,7 @@ export function createRenderer(canvas) {
     context.moveTo(0, FIELD.hud);
     context.lineTo(FIELD.width, FIELD.hud);
     context.stroke();
-    text(level.name, 24, 26, 26, PALETTE.ink, 'left', 'top');
+    text(name, 24, 26, 26, PALETTE.ink, 'left', 'top');
     const remain = level.diffs.length - level.foundCount;
     text(`Found ${level.foundCount} / ${level.diffs.length} — ${remain} remain`, 24, 54, 20, PALETTE.inkSoft, 'left', 'top');
     text(`Time ${formatTime(level.time)}`, FIELD.width / 2, 26, 26, PALETTE.ink, 'center', 'top');
@@ -171,19 +171,34 @@ export function createRenderer(canvas) {
     text(prompt, FIELD.width / 2, y + height - 40, 22, PALETTE.goldDeep, 'center');
   }
 
+  // A real 5-pointed star polygon.
+  function starPath(cx, cy, outer, inner) {
+    context.beginPath();
+    for (let i = 0; i < 10; i += 1) {
+      const r = i % 2 === 0 ? outer : inner;
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      if (i === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
+    }
+    context.closePath();
+  }
+
   function drawStars(n, cx, cy, size) {
     for (let i = 0; i < 3; i += 1) {
       const x = cx + (i - 1) * (size + 14);
       if (i < n) {
         context.fillStyle = PALETTE.gold;
-        context.beginPath();
-        context.arc(x, cy, size, 0, Math.PI * 2);
+        starPath(x, cy, size, size * 0.45);
         context.fill();
+        context.strokeStyle = PALETTE.goldDeep;
+        context.lineWidth = 1.5;
+        context.stroke();
       } else {
         context.strokeStyle = PALETTE.panelLine;
         context.lineWidth = 2;
-        context.beginPath();
-        context.arc(x, cy, size, 0, Math.PI * 2);
+        starPath(x, cy, size, size * 0.45);
         context.stroke();
       }
     }
@@ -228,13 +243,13 @@ export function createRenderer(canvas) {
     drawWrong(level);
 
     if (screen === SCREEN_PLAY) {
-      drawHud(level, game.muted);
+      drawHud(level, LEVELS[game.levelIndex].name, game.muted);
       drawCrosshair(game.cross);
     } else if (screen === SCREEN_PAUSED) {
-      drawHud(level, game.muted);
+      drawHud(level, LEVELS[game.levelIndex].name, game.muted);
       drawPanel('Paused', ['The glade waits for you.'], 'P or Esc to resume · R to restart', PALETTE.ink);
     } else if (screen === SCREEN_LEVEL_COMPLETE) {
-      drawHud(level, game.muted);
+      drawHud(level, LEVELS[game.levelIndex].name, game.muted);
       const stars = starsFor(level);
       const lines = [
         `Time ${formatTime(level.time)}`,

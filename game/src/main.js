@@ -70,6 +70,7 @@ function startLevel(game, index) {
 function runShot(name) {
   const game = stageShot(name);
   window.__game = game;
+  window.__levels = LEVELS;
   let painted = 0;
   function paint() {
     renderer.draw(game);
@@ -84,6 +85,7 @@ function runGame() {
   const input = createInput(canvas);
   const game = newGame();
   window.__game = game;
+  window.__levels = LEVELS;
   let accumulator = 0;
   let last = performance.now();
 
